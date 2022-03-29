@@ -233,6 +233,13 @@
 
         this.changeVideoProgress = (pX, pY, noCheck) => {
           if (olc.isPointInPath(Paths.tb, pX, pY) || noCheck) {
+            videoPlayer.currentTime =
+              (videoPlayer.duration *
+                Math.round(
+                  ((pX - this.x) / (ol.width - this.x - this.x)) * 100
+                )) /
+              100;
+              submitVideoProgress();
           } else {
             // console.log("Missed PB");
           }
@@ -341,9 +348,10 @@
         //     }
         // }
         let pd = JSON.stringify({
-          videoTitle: titleToFile(
-            document.querySelector("#sel_videoOption").value
-          ),
+          //videoTitle: titleToFile(
+          //  document.querySelector("#sel_videoOption").value
+          //),
+          videoTitle: `/${videoPlayer.currentSrc.split("/")[3]}`,
           videoProgress: Math.floor(
             document.querySelector("#videoPlayer").currentTime
           ),
