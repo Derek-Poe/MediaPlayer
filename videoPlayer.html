@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Video Player</title>
+    <style>
+      body {
+        background-color: rgb(14, 14, 14);
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      #videoOverlay {
+        box-shadow: 0 1px 4px rgb(0 0 0 / 10%);
+        /* border-radius: 6px; */
+        background-color: #000000b5;
+        /* background-color: #00000000; */
+        text-align: center;
+        z-index: 10;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        width: 100vw;
+        height: 100vh;
+      }
+
+      #div_vidCon video {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      #div_olCon {
+        opacity: 0;
+        transition: opacity 1s ease-in-out;
+        /* -moz-transition: opacity 1s ease-in-out; */
+        /* -webkit-transition: opacity 1s ease-in-out; */
+      }
+
+      #div_olCon:hover {
+        opacity: 1;
+        transition: opacity 0.4s ease-in-out;
+        /* -moz-transition: opacity 0.55s ease-in-out; */
+        /* -webkit-transition: opacity 0.55s ease-in-out; */
+      }
+    </style>
+  </head>
+  <body>
+    <div id="div_vidCon">
+      <!--<div id="videoOverlay"></div>-->
+      <video id="videoPlayer">
+        <!--<source src="/video" type="video/mp4" />-->
+      </video>
+      <div id="div_olCon"></div>
+    </div>
+    <select id="sel_videoOption">
+      <option></option>
+      <option>Video 1</option>
+    </select>
+    <script>
+      let videoPlayer = document.querySelector("#videoPlayer");
+      let videoPlaying;
+      let ol;
+
+      Paths = {
+        pb: new Path2D(),
+        tb: new Path2D(),
+      };
+
+      function PlayButton(x, y, sX, sY, state, action) {
+        this.x = x;
+        this.y = y;
+        this.sX = sX;
+        this.sY = sY;
+        this.state = state;
+        this.action = action;
+
+        this.update = () => {
+          //let olc = ol.getContext("2d");
+          Paths.pb = new Path2D();
+          let pbc = Paths.pb;
+          //this.x += this.sX;
+          if (this.state === "play") {
+            if (this.action === "home") {
+              pbc.moveTo(this.x, ol.height - this.y);
+              pbc.lineTo(this.x + 23, ol.height - (this.y - 10));
+              pbc.lineTo(this.x, ol.height - (this.y - 20));
+              pbc.closePath();
+              olc.lineWidth = 2;
+              olc.strokeStyle = "#ffffff";
+              olc.fillStyle = "#00ff0000";
+              olc.stroke(pbc);
+              olc.fill(pbc);
+            } else if (this.action === "hide") {
+            }
+          } else if (this.state === "pause") {
+            if (this.action === "home") {
+              pbc.moveTo(this.x, ol.height - this.y);
+              pbc.lineTo(this.x, ol.height - (this.y - 20));
+              pbc.lineTo(this.x + 7.6 * 1, ol.height - (this.y - 20));
+              pbc.lineTo(this.x + 7.6 * 1, ol.height - this.y);
+              pbc.closePath();
+              olc.strokeStyle = "#ffffff";
+              olc.lineWidth = 2;
+              olc.stroke(pbc);
+
+              pbc.moveTo(this.x + 7.6 * 2, ol.height - this.y);
+              pbc.lineTo(this.x + 7.6 * 2, ol.height - (this.y - 20));
+              pbc.lineTo(this.x + 7.6 * 3, ol.height - (this.y - 20));
+              pbc.lineTo(this.x + 7.6 * 3, ol.height - this.y);
+              pbc.closePath();
+              olc.lineWidth = 2;
+              olc.stroke(pbc);
+
+              pbc.moveTo(this.x, ol.height - this.y);
+              pbc.lineTo(this.x, ol.height - (this.y - 20));
+              pbc.lineTo(this.x + 7.6 * 3, ol.height - (this.y - 20));
+              pbc.lineTo(this.x + 7.6 * 3, ol.height - this.y);
+              pbc.closePath();
+              olc.lineWidth = 2;
+              olc.strokeStyle = "#ffff0000";
+              olc.stroke(pbc);
+
+              olc.fillStyle = "#00ff0000";
+              olc.fill(pbc);
+            } else if (this.action === "hide") {
+            }
+          }
+        };
+
+        this.toggle = (pX, pY, noCheck) => {
+          //   console.log("PB Toggle");
+          if (olc.isPointInPath(Paths.pb, pX, pY) || noCheck) {
+            videoPlayer.paused ? playVideo() : pauseVideo();
+          } else {
+            // console.log("Missed PB");
+          }
+        };
+      }
+
+      function TimeBar(x, y, sX, sY, state, action) {
+        this.x = x;
+        this.y = y;
+        this.sX = sX;
+        this.sY = sY;
+        this.state = state;
+        this.action = action;
+
+        this.update = () => {
+          Paths.tb = new Path2D();
+          let tbc = Paths.tb;
+          if (this.state === "play") {
+            if (this.action === "home") {
+              // tbc.moveTo(this.x, ol.height - this.y);
+              // tbc.lineTo(ol.width - this.x, ol.height - this.y);
+              // olc.lineWidth = 7;
+              // olc.strokeStyle = "#dddddd";
+              // olc.stroke(tbc);
+
+              tbc.moveTo(this.x, ol.height - this.y + 3);
+              tbc.lineTo(ol.width - this.x, ol.height - this.y + 3);
+              tbc.lineTo(ol.width - this.x, ol.height - this.y - 3);
+              tbc.lineTo(this.x, ol.height - this.y - 3);
+              tbc.closePath();
+              olc.strokeStyle = "#ffffffff";
+              olc.stroke(tbc);
+              olc.fillStyle = "#dddddd";
+              olc.fill(tbc);
+
+              //   Paths.tb = new Path2D();
+              //   tbc = Paths.tb;
+              tbc = new Path2D();
+              let barLength = ol.width - this.x - this.x;
+              let videoProgress =
+                Math.round(
+                  (videoPlayer.currentTime / videoPlayer.duration) * 100
+                ) / 100;
+              let progressPosition = Math.round(barLength * videoProgress);
+              tbc.moveTo(this.x, ol.height - this.y);
+              tbc.lineTo(this.x + progressPosition, ol.height - this.y);
+              olc.lineWidth = 3;
+              olc.strokeStyle = "#00ff00";
+              olc.stroke(tbc);
+            } else if (this.action === "hide") {
+            }
+          } else if (this.state === "pause") {
+            if (this.action === "home") {
+              // tbc.moveTo(this.x, ol.height - this.y);
+              // tbc.lineTo(ol.width - this.x, ol.height - this.y);
+              // olc.lineWidth = 7;
+              // olc.strokeStyle = "#dddddd";
+              // olc.stroke(tbc);
+
+              tbc.moveTo(this.x, ol.height - this.y + 3);
+              tbc.lineTo(ol.width - this.x, ol.height - this.y + 3);
+              tbc.lineTo(ol.width - this.x, ol.height - this.y - 3);
+              tbc.lineTo(this.x, ol.height - this.y - 3);
+              tbc.closePath();
+              olc.strokeStyle = "#ffffffff";
+              olc.stroke(tbc);
+              olc.fillStyle = "#dddddd";
+              olc.fill(tbc);
+
+              //   Paths.tb = new Path2D();
+              //   tbc = Paths.tb;
+              tbc = new Path2D();
+              let barLength = ol.width - this.x - this.x;
+              let videoProgress =
+                Math.round(
+                  (videoPlayer.currentTime / videoPlayer.duration) * 100
+                ) / 100;
+              let progressPosition = Math.round(barLength * videoProgress);
+              tbc.moveTo(this.x, ol.height - this.y);
+              tbc.lineTo(this.x + progressPosition, ol.height - this.y);
+              olc.lineWidth = 3;
+              olc.strokeStyle = "#ffa500";
+              olc.stroke(tbc);
+            } else if (this.action === "hide") {
+            }
+          }
+        };
+
+        this.changeVideoProgress = (pX, pY, noCheck) => {
+          if (olc.isPointInPath(Paths.tb, pX, pY) || noCheck) {
+          } else {
+            // console.log("Missed PB");
+          }
+        };
+      }
+
+      function createOverlay() {
+        ol = document.createElement("canvas");
+        ol.id = "videoOverlay";
+        ol.width = window.innerWidth;
+        ol.height = window.innerHeight;
+        //olc = ol.getContext("2d");
+        document.querySelector("#div_olCon").appendChild(ol);
+      }
+
+      createOverlay();
+      let olc = ol.getContext("2d");
+      let pb = new PlayButton(15, 30, 0, 0, "pause", "home");
+      let tb = new TimeBar(75, 20, 0, 0, "pause", "home");
+
+      function clearOverlay() {
+        olc.clearRect(0, 0, ol.width, ol.height);
+      }
+
+      ol.onclick = (e) => canvasClickHandler(e);
+      function canvasClickHandler(e) {
+        let x = e.offsetX;
+        let y = e.offsetY;
+        pb.toggle(x, y, false);
+        tb.changeVideoProgress(x, y, false);
+      }
+
+      function pauseVideo() {
+        videoPlayer.pause();
+        pb.state = "pause";
+        tb.state = "pause";
+      }
+
+      function playVideo() {
+        videoPlayer.play();
+        pb.state = "play";
+        tb.state = "play";
+      }
+
+      function animateOverlay() {
+        clearOverlay();
+        pb.update();
+        tb.update();
+      }
+      let animatingOverlay = setInterval(animateOverlay, 20);
+
+      function titleToFile(vid) {
+        switch (vid) {
+          case "Video 1":
+            return "/testvid";
+            break;
+          default:
+            return "Error";
+        }
+      }
+
+      function fileToTitle(vid) {
+        switch (vid) {
+          case "/testvid":
+            return "Video 1";
+            break;
+          default:
+            return "Error";
+        }
+      }
+
+      document.querySelector("#sel_videoOption").onchange = () => {
+        changeVideo(
+          titleToFile(document.querySelector("#sel_videoOption").value),
+          "video/mp4"
+        );
+      };
+
+      function changeVideo(videoTitle, videoType) {
+        let videoProgressPut = new XMLHttpRequest();
+        videoProgressPut.onreadystatechange = () => {
+          // console.log(videoProgressPut);
+          if (
+            videoProgressPut.readyState === 4 &&
+            videoProgressPut.status === 200
+          ) {
+            document.querySelector("#videoPlayer").currentTime =
+              videoProgressPut.response;
+            document.querySelector("#videoPlayer").src = videoTitle;
+            // console.log(videoTitle);
+          }
+        };
+        let pd = JSON.stringify({
+          videoTitle: videoTitle,
+        });
+        videoProgressPut.open("PUT", "/progressGet", true);
+        videoProgressPut.setRequestHeader("Content-Type", "application/json");
+        videoProgressPut.send(pd);
+      }
+
+      function submitVideoProgress() {
+        let submitProgressPut = new XMLHttpRequest();
+        // progressPut.onreadystatechange = () => {
+        //     if(this.readyState === 4 & this.status === 200){
+
+        //     }
+        // }
+        let pd = JSON.stringify({
+          videoTitle: titleToFile(
+            document.querySelector("#sel_videoOption").value
+          ),
+          videoProgress: Math.floor(
+            document.querySelector("#videoPlayer").currentTime
+          ),
+        });
+        submitProgressPut.open("PUT", "/progressSubmit", true);
+        submitProgressPut.setRequestHeader("Content-Type", "application/json");
+        submitProgressPut.send(pd);
+      }
+
+      document.querySelector("#videoPlayer").onplay = () => {
+        videoPlaying = setInterval(submitVideoProgress, 1000);
+      };
+      document.querySelector("#videoPlayer").onpause = () => {
+        clearInterval(videoPlaying);
+      };
+      document.querySelector("#videoPlayer").onended = () => {
+        pauseVideo();
+      };
+
+      changeVideo(titleToFile("Video 1"), "video/mp4");
+    </script>
+  </body>
+</html>
