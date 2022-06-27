@@ -35,6 +35,14 @@ app.get("/videoPlayer.html", function (req, res) {
     res.sendFile(__dirname + "/videoPlayer.html");
 });
 
+app.get("/bojjiSprites.png", function (req, res) {
+    res.sendFile(__dirname + "/bojjiSprites.png");
+});
+
+app.get("/testVidList", function (req, res) {
+    res.send(`{"Series1":{"Title":"Really Cool Show 1","Episode Count":"3","Episodes":{"e1":{"title":"Episode 1","desc":"s1e1"},"e2":{"title":"Episode 2","desc":"s1e2"},"e3":{"title":"Episode 3","desc":"s1e3"}}},"Series2":{"Title":"Really Cool Show 2","Episode Count":"3","Episodes":{"e1":{"title":"Episode 1","desc":"s2e1"},"e2":{"title":"Episode 2","desc":"s2e2"},"e3":{"title":"Episode 3","desc":"s2e3"}}},"Series3":{"Title":"Really Cool Show 3","Episode Count":"3","Episodes":{"e1":{"title":"Episode 1","desc":"s3e1"},"e2":{"title":"Episode 2","desc":"s3e2"},"e3":{"title":"Episode 3","desc":"s3e3"}}},"Series4":{"Title":"Really Cool Show 4","Episode Count":"3","Episodes":{"e1":{"title":"Episode 1","desc":"s4e1"},"e2":{"title":"Episode 2","desc":"s4e2"},"e3":{"title":"Episode 3","desc":"s4e3"}}},"Series5":{"Title":"Really Cool Show 5","Episode Count":"3","Episodes":{"e1":{"title":"Episode 1","desc":"s5e1"},"e2":{"title":"Episode 2","desc":"s5e2"},"e3":{"title":"Episode 3","desc":"s5e3"}}}}`);
+});
+
 app.get("/testvid", function (req, res) {
     const range = req.headers.range;
     if (!range) {
