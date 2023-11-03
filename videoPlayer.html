@@ -6,8 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Video Player</title>
     <style>
+          
       body {
         background-color: rgb(14, 14, 14);
+/*         cursor: none; */
       }
 
       html,
@@ -16,6 +18,10 @@
         padding: 0;
         height: 100%;
         overflow: hidden;
+      }
+
+      .SpriteSheet {
+        display: none;
       }
 
       #videoOverlay {
@@ -39,6 +45,8 @@
         width: 100vw;
         height: 100vh;
         overflow: hidden;
+
+        /* cursor: none; */
       }
 
       #div_olCon {
@@ -46,6 +54,10 @@
         transition: opacity 1s ease-in-out;
         /* -moz-transition: opacity 1s ease-in-out; */
         /* -webkit-transition: opacity 1s ease-in-out; */
+        
+        /*-----------*/
+/*         opacity: 1; */
+        /*-----------*/
       }
 
       #div_olCon:hover {
@@ -54,9 +66,33 @@
         /* -moz-transition: opacity 0.55s ease-in-out; */
         /* -webkit-transition: opacity 0.55s ease-in-out; */
       }
+
+      .olMenu {
+        color: #ffffff;
+        z-index: 11;
+        position: absolute;
+        
+        text-align: center;
+      }
+
+      .rootMenuHide {
+        top: -100%;
+        left: 25%;
+        transition: transform 3s;
+        transform: translate(0%, 0%);
+      }
+
+      .rootMenuShow {
+        top: -100%;
+        left: 25%;
+        transition: transform 1.5s;
+        transform: translate(0%, 275%);
+      }
+
     </style>
   </head>
   <body>
+    <img id="img_bojjiSpriteSheet" class="SpriteSheet" src="/bojjiSprites.png" onload="initSprites()"/>
     <div id="div_vidCon">
       <!--<div id="videoOverlay"></div>-->
       <video id="videoPlayer">
@@ -69,30 +105,67 @@
       <option>Video 1</option>
     </select>
     <script>
-      let videoPlayer = document.querySelector("#videoPlayer");
+      const videoPlayer = document.querySelector("#videoPlayer");
+      let videoLibrary;
       let videoPlaying;
-      let ol;
+      let spritesLoaded = false;
+      let spriteSheet1;
+      let pbPartner;
+      let tbPartner;
+      let mbPartner;
+      //let ol;
 
-      Paths = {
+      let Paths = {
         pb: new Path2D(),
         tb: new Path2D(),
+        mb: new Path2D()
       };
 
-      function PlayButton(x, y, sX, sY, state, action) {
+      function PlayButton(x, y, state, action) {
         this.x = x;
         this.y = y;
-        this.sX = sX;
-        this.sY = sY;
+        this.oX = x;
+        this.oY = y;
         this.state = state;
         this.action = action;
 
         this.update = () => {
+          //console.log(this.action + ": " + this.x);
+          switch(this.action){
+            case "home":
+              this.x = this.oX;
+              this.y = this.oY;
+              break;
+            case "enter":
+              this.x += 3;
+              if(this.x >= this.oX){
+                this.action = "home";
+              }
+              this.y = this.oY;
+              break;
+            case "exit":
+              this.x -= 1;
+              if(this.x <= -20){
+                this.action = "hide";
+              }
+              this.y = this.oY;
+              break;
+            case "hide":
+              this.x = -25;
+              this.y = this.oY;
+              break;
+            case "test":
+              break;
+            default:
+              this.action = "home";
+          }
+              
           //let olc = ol.getContext("2d");
           Paths.pb = new Path2D();
           let pbc = Paths.pb;
           //this.x += this.sX;
           if (this.state === "play") {
-            if (this.action === "home") {
+            //if (this.action === "home") {
               pbc.moveTo(this.x, ol.height - this.y);
               pbc.lineTo(this.x + 23, ol.height - (this.y - 10));
               pbc.lineTo(this.x, ol.height - (this.y - 20));
@@ -102,10 +175,10 @@
               olc.fillStyle = "#00ff0000";
               olc.stroke(pbc);
               olc.fill(pbc);
-            } else if (this.action === "hide") {
-            }
+            //} else if (this.action === "hide") {
+            //}
           } else if (this.state === "pause") {
-            if (this.action === "home") {
+            //if (this.action === "home") {
               pbc.moveTo(this.x, ol.height - this.y);
               pbc.lineTo(this.x, ol.height - (this.y - 20));
               pbc.lineTo(this.x + 7.6 * 1, ol.height - (this.y - 20));
@@ -134,8 +207,8 @@
 
               olc.fillStyle = "#00ff0000";
               olc.fill(pbc);
-            } else if (this.action === "hide") {
-            }
+            //} else if (this.action === "hide") {
+            //}
           }
         };
 
@@ -149,19 +222,77 @@
         };
       }
 
-      function TimeBar(x, y, sX, sY, state, action) {
+      function TimeBar(x, y, state, action) {
         this.x = x;
         this.y = y;
-        this.sX = sX;
-        this.sY = sY;
+        this.oX = x;
+        this.oY = y;
         this.state = state;
         this.action = action;
 
         this.update = () => {
+          switch(this.action){
+            case "home":
+              this.x = this.oX;
+              this.y = this.oY;
+              break;
+            case "enter":
+              this.x = this.oX;
+              this.y += 2.5;
+              if(this.y >= this.oY){
+                this.action = "home";
+              }
+              break;
+            case "exit":
+              this.x = this.oX;
+              this.y -= 0.5;
+              if(this.y <= -20){
+                this.action = "hide";
+              }
+              break;
+            case "hide":
+              this.x = this.oX;
+              this.y = -5;
+              break;
+            case "test":
+              break;
+            default:
+              this.action = "home";
+          }
+          // console.log(this.x);
+          // switch(this.action){
+          //    case "home":
+          //      this.x = this.oX;
+          //      this.y = this.oY;
+          //      break;
+          //    case "enter":
+          //      this.x -= 20;
+          //      if(this.x <= this.oX){
+          //        this.action = "home";
+          //      }
+          //      this.y = this.oY;
+          //      break;
+          //    case "exit":
+          //      this.x += 5;
+          //      if(this.x >= (ol.width /2 ) - 2){
+          //        this.action = "hide";
+          //      }
+          //      this.y = this.oY;
+          //      break;
+          //    case "hide":
+          //      this.x = (ol.width /2 ) - 2;
+          //      this.y = this.oY;
+          //      break;
+          //    case "test":
+          //      break;
+          //    default:
+          //      this.action = "home";
+          //  }
+              
           Paths.tb = new Path2D();
           let tbc = Paths.tb;
           if (this.state === "play") {
-            if (this.action === "home") {
+            //if (this.action === "home") {
               // tbc.moveTo(this.x, ol.height - this.y);
               // tbc.lineTo(ol.width - this.x, ol.height - this.y);
               // olc.lineWidth = 7;
@@ -192,10 +323,10 @@
               olc.lineWidth = 3;
               olc.strokeStyle = "#00ff00";
               olc.stroke(tbc);
-            } else if (this.action === "hide") {
-            }
+            //} else if (this.action === "hide") {
+            //}
           } else if (this.state === "pause") {
-            if (this.action === "home") {
+            //if (this.action === "home") {
               // tbc.moveTo(this.x, ol.height - this.y);
               // tbc.lineTo(ol.width - this.x, ol.height - this.y);
               // olc.lineWidth = 7;
@@ -226,8 +357,8 @@
               olc.lineWidth = 3;
               olc.strokeStyle = "#ffa500";
               olc.stroke(tbc);
-            } else if (this.action === "hide") {
-            }
+            //} else if (this.action === "hide") {
+            //}
           }
         };
 
@@ -239,15 +370,233 @@
                   ((pX - this.x) / (ol.width - this.x - this.x)) * 100
                 )) /
               100;
-              submitVideoProgress();
+            submitVideoProgress();
           } else {
             // console.log("Missed PB");
           }
         };
       }
 
+      function MenuButton(x, y, state, action) {
+        this.x = x;
+        this.y = y;
+        this.oX = x;
+        this.oY = y;
+        this.state = state;
+        this.action = action;
+
+        this.update = () => {
+          switch(this.action){
+            case "home":
+              this.x = this.oX;
+              this.y = this.oY;
+              break;
+            case "enter":
+              this.x -= 3;
+              if(this.x <= this.oX){
+                this.action = "home";
+              }
+              this.y = this.oY;
+              break;
+            case "exit":
+              this.x += 1;
+              if(this.x >= ol.width + 20){
+                this.action = "hide";
+              }
+              this.y = this.oY;
+              break;
+            case "hide":
+              this.x = ol.width + 15;
+              this.y = this.oY;
+              break;
+            case "test":
+              break;
+            default:
+              this.action = "home";
+          }
+              
+          Paths.mb = new Path2D();
+          let mbc = Paths.mb;
+          mbc.arc(this.x, ol.height - this.y, 12, 0, 2 * Math.PI);
+          if (this.state === "menuClosed") {
+            olc.lineWidth = 2;
+            olc.strokeStyle = "#ffffff";
+            olc.fillStyle = "#00ff0000";
+            olc.stroke(mbc);
+            olc.fill(mbc);
+          } else if (this.state === "menuOpen") {
+            olc.lineWidth = 2;
+            olc.strokeStyle = "#ffffff";
+            olc.fillStyle = "#0000ff55";
+            olc.stroke(mbc);
+            olc.fill(mbc);
+          }
+          //console.log(`x: ${this.x}; y: ${this.y}; oX: ${this.oX}; oY: ${this.oY}; state: ${this.state}; action: ${this.action};`);
+        };
+
+        this.toggle = (pX, pY, noCheck) => {
+          if (olc.isPointInPath(Paths.mb, pX, pY) || noCheck) {
+            if(this.state === "menuClosed"){
+              this.state = "menuOpen";
+              document.querySelector("#table_menu_seriesRoot").classList = "olMenu rootMenuShow";
+              menuPartner.action = "enter_menuClosed";
+            }
+            else if(this.state === "menuOpen"){
+              this.state = "menuClosed";
+              document.querySelector("#table_menu_seriesRoot").classList = "olMenu rootMenuHide";
+            }
+          } else {
+            // console.log("Missed PB");
+          }
+        };
+      }
+
+      function SpriteSheet(sheet, spriteW, spriteH) {
+        this.wholeSheet = sheet;
+        this.spriteW = spriteW;
+        this.spriteH = spriteH;
+        this.posCount = (this.wholeSheet.width / this.spriteW) * (this.wholeSheet.height / this.spriteH);
+        let objStr = "{";
+        for(let i = 1; i < this.posCount + 1; i++){ 
+          let col = i % (this.wholeSheet.width / this.spriteW);
+          let spritePosX; 
+          (col === 0) ? spritePosX = ((this.wholeSheet.width / this.spriteW) - 1) * this.spriteW : spritePosX = (col - 1) * this.spriteW;
+          let spritePosY = (Math.ceil(i / (this.wholeSheet.height / this.spriteH )) - 1)  * this.spriteH;
+          objStr += `"${i}":{"x":${spritePosX},"y":${spritePosY}},`;
+        }
+        objStr = objStr.substr(0, objStr.length - 1);
+        objStr += "}";
+        // console.log(objStr);
+        this.pos = JSON.parse(objStr);
+      }
+
+      function Sprite(sheet, x, y, position, size, action, role) {
+        this.sheet = sheet;
+        this.x = x;
+        this.y = y;
+        this.pos = position;
+        this.size = size;
+        this.action = action;
+        this.role = role;
+        this.posRef1 = 0;
+        this.posTime1 = 0;
+        //console.log(document.querySelector("#img_ss1").width);
+            
+        this.update = () => {
+          switch(this.role){
+            case "pbPartner":
+              if(this.action === "test"){
+                //Do Nothing...
+              }
+              else if(pb.action === "enter"){
+                this.x = pb.x - 32;
+                this.y = ol.height - pb.y - 18;
+              }
+              else if(pb.action === "home" || pb.action === "exit" || pb.action === "hide"){
+                this.x -= 0.35;
+                if(this.x <= -32){
+                  this.x = -32;
+                }
+              }
+              break;
+            case "tbPartner":
+            if(this.action === "test"){
+                //Do Nothing...
+              }
+              else if(tb.action === "enter"){
+                this.x = ol.width / 2;
+                this.y = ol.height - tb.y;
+              }
+              else if(tb.action === "home" || tb.action === "exit" || tb.action === "hide"){
+                this.y += 0.35;
+                if(this.y >= 370){
+                  this.y = 370;
+                }
+              }
+              break;
+            case "mbPartner":
+              if(this.action === "test"){
+                //Do Nothing...
+              }
+              else if(mb.action === "enter"){
+                this.x = mb.x + 10;
+                this.y = ol.height - mb.y - 30;
+              }
+              else if(mb.action === "home" || mb.action === "exit" || mb.action === "hide"){
+                this.x += 0.35;
+                if(this.x >= ol.width + 40){
+                  this.x = ol.width + 40;
+                }
+              }
+              break;
+            case "menuPartner":
+              if(this.action === "test"){
+                //Do Nothing...
+              }
+              else if(this.action === "home"){
+                this.pos = 1;
+                this.x = ol.width / 2;
+                this.y = ol.height - tb.y - 68;
+              }
+              else if(this.action === "enter_menuOpen"){  
+                
+              }
+              else if(this.action === "enter_menuClosed"){ 
+                this.pos = 4;
+                //console.log(`Action: ${this.action}; y: ${this.y}; posRef1: ${this.posRef1}; posTime1: ${this.posTime1}; pos: ${this.pos};`);
+                if(this.posRef1 === this.y){
+                  this.posTime1++;
+                }
+                else{
+                  this.posRef1 = this.y;
+                  this.posTime1 = 0;
+                }
+                if(this.posTime1 >= 2){
+                  this.action = "hang";
+                }
+                this.x = ol.width / 2;
+                this.y = document.querySelector("#table_menu_seriesRoot").getBoundingClientRect().bottom - 10;
+              }
+              else if(this.action === "hang"){ 
+                this.pos = 4; 
+                if(this.posRef1 === this.y){
+                  this.posTime1++;
+                }
+                else{
+                  this.posTime1 = 0;
+                }
+                if(this.posTime1 >= 50){
+                  this.action = "fall";
+                }
+                this.x = ol.width / 2;
+                this.y = document.querySelector("#table_menu_seriesRoot").getBoundingClientRect().bottom - 10;
+              }
+              else if(this.action === "fall"){
+                if(this.y >= ol.height - tb.y - 68){
+                  //Hero Landing
+                  this.action = "home";
+                }
+                this.pos = 1;
+                this.x = ol.width / 2;
+                this.y += 2.5;
+              }
+              else if(this.action === "exit_menuOpen"){
+                //Direct Menu Up, then Jump
+              }
+              else if(this.action === "exit_menuClosed"){
+
+              }
+              break;
+            default:
+              this.role = "unassigned";
+          }
+              
+          olc.drawImage(this.sheet.wholeSheet, this.sheet.pos[this.pos].x, this.sheet.pos[this.pos].y, this.sheet.spriteW, this.sheet.spriteH, this.x, this.y, this.sheet.spriteW * this.size, this.sheet.spriteH * this.size);
+        }
+      }
+
       function createOverlay() {
-        ol = document.createElement("canvas");
+        let ol = document.createElement("canvas");
         ol.id = "videoOverlay";
         ol.width = window.innerWidth;
         ol.height = window.innerHeight;
@@ -256,21 +605,54 @@
       }
 
       createOverlay();
-      let olc = ol.getContext("2d");
-      let pb = new PlayButton(15, 30, 0, 0, "pause", "home");
-      let tb = new TimeBar(75, 20, 0, 0, "pause", "home");
+      const ol = document.querySelector("#videoOverlay");
+      const olc = ol.getContext("2d");
+      const olCon = document.querySelector("#div_olCon");
+      const pb = new PlayButton(15, 30, "pause", "hide");
+      const tb = new TimeBar(75, 20, "pause", "hide");
+      const mb = new MenuButton(ol.width - 30, 20, "menuClosed", "hide");
+      //const SpriteSheet1 = document.querySelector("#img_ss1");
+      //console.log(document.querySelector("#img_ss1").width);
+      function initSprites(){
+        bojjiSpriteSheet = new SpriteSheet(document.querySelector("#img_bojjiSpriteSheet"), 26, 32);
+        pbPartner = new Sprite(bojjiSpriteSheet, 100, 100, 2, 1.25, "N/A", "pbPartner");
+        //tbPartner = new Sprite(bojjiSpriteSheet, 150, 100, 1, 1, "N/A", "tbPartner");
+        mbPartner = new Sprite(bojjiSpriteSheet, 150, 100, 3, 1.25, "N/A", "mbPartner");
+        menuPartner = new Sprite(bojjiSpriteSheet, 150, -100, 1, 2, "N/A", "menuPartner");
+        spritesLoaded = true;
+      }
 
       function clearOverlay() {
         olc.clearRect(0, 0, ol.width, ol.height);
       }
 
-      ol.onclick = (e) => canvasClickHandler(e);
-      function canvasClickHandler(e) {
+      function overlayClickHandler(e) {
         let x = e.offsetX;
         let y = e.offsetY;
         pb.toggle(x, y, false);
         tb.changeVideoProgress(x, y, false);
+        mb.toggle(x, y, false);
       }
+      ol.onclick = (e) => overlayClickHandler(e);
+
+      function overlayMouseMoveHandler(e) {
+        console.log(e);
+      }
+      //ol.onmousemove = (e) => overlayMouseMoveHandler(e);
+
+      function overlayMouseOverHandler(){
+        pb.action = "enter";
+        tb.action = "enter";
+        mb.action = "enter";
+      }
+      olCon.onmouseover = overlayMouseOverHandler;
+
+      function overlayMouseOutHandler(){
+        pb.action = "exit";
+        tb.action = "exit";
+        mb.action = "exit";
+      }
+      olCon.onmouseout = overlayMouseOutHandler;
 
       function pauseVideo() {
         videoPlayer.pause();
@@ -288,8 +670,44 @@
         clearOverlay();
         pb.update();
         tb.update();
+        mb.update();
+        if(spritesLoaded){
+          pbPartner.update();
+          //tbPartner.update();
+          mbPartner.update();
+          menuPartner.update();
+        }
+        
+        //----------------
+        //console.log(document.querySelector("#table_menu_seriesRoot").style.top);
+        //----------------
       }
       let animatingOverlay = setInterval(animateOverlay, 20);
+
+      function buildMenu(menuData, menuType, menuTitle, menuClass){
+        let table = document.createElement("table");
+        table.id = `table_menu_${menuTitle}`;
+        table.menuType = menuType;
+        table.classList.add("olMenu", menuClass);
+        
+        let tableCont = "";
+        if(table.menuType === "seriesRoot"){
+          tableCont += `<tr><th></th><th>Title</th><th>Episodes</th></tr>`;
+          for(let i = 0; i < Object.keys(menuData).length; i++){
+            tableCont += "<tr>";
+            tableCont += `<td>--POSTER--</td>`;
+            tableCont += `<td>${menuData[Object.keys(menuData)[i]]["Title"]}</td>`;
+            tableCont += `<td>${menuData[Object.keys(menuData)[i]]["Episode Count"]}</td>`;
+            tableCont += "</tr>";
+          }
+        }
+        else if(table.menuType === "seriesEpisodes"){
+
+        }
+        table.innerHTML = tableCont;
+
+        document.querySelector("#div_olCon").appendChild(table);
+      }
 
       function titleToFile(vid) {
         switch (vid) {
@@ -317,6 +735,30 @@
           "video/mp4"
         );
       };
+
+      function getVideoLibrary(){
+        let videoLibraryGet = new XMLHttpRequest();
+        videoLibraryGet.onreadystatechange = () => {
+          // console.log(videoProgressPut);
+          if (
+            videoLibraryGet.readyState === 4 &&
+            videoLibraryGet.status === 200
+          ) {
+            videoLibrary = JSON.parse(videoLibraryGet.responseText);
+
+            //--------------
+            buildMenu(videoLibrary, "seriesRoot", "seriesRoot", "rootMenuHide");
+            //--------------
+                
+          }
+        };
+        videoLibraryGet.open("GET", "/testVidList", true);
+        //videoLibraryGet.setRequestHeader("Content-Type", "application/json");
+        videoLibraryGet.send();
+      }
+      //-----------
+      getVideoLibrary();
+      //-----------
 
       function changeVideo(videoTitle, videoType) {
         let videoProgressPut = new XMLHttpRequest();
