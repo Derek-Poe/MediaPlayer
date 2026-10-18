@@ -37,4 +37,6 @@ The progress adapter uses bound parameters and exact video-title matches. Unknow
 
 This remains a local prototype: it has no authentication, per-user progress, transcoding, or production deployment configuration. The automated tests cover server contracts; full playback depends on your browser and MP4 codec. Database integration and the original animation assets are not part of those tests.
 
+On 2026-10-18, public branch history was rewritten to exclude identified historical sensitive data. Re-clone if you have an older checkout; merging its history back can reintroduce removed data. GitHub cached views or retained references, if present, need separate cleanup; external copies are not erased.
+
 MIT License — Derek Poe.
