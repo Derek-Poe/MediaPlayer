@@ -92,7 +92,6 @@
     </style>
   </head>
   <body>
-    <img id="img_bojjiSpriteSheet" class="SpriteSheet" src="/bojjiSprites.png" onload="initSprites()"/>
     <div id="div_vidCon">
       <!--<div id="videoOverlay"></div>-->
       <video id="videoPlayer">
@@ -439,7 +438,7 @@
             if(this.state === "menuClosed"){
               this.state = "menuOpen";
               document.querySelector("#table_menu_seriesRoot").classList = "olMenu rootMenuShow";
-              menuPartner.action = "enter_menuClosed";
+              if (spritesLoaded) menuPartner.action = "enter_menuClosed";
             }
             else if(this.state === "menuOpen"){
               this.state = "menuClosed";
@@ -613,15 +612,6 @@
       const mb = new MenuButton(ol.width - 30, 20, "menuClosed", "hide");
       //const SpriteSheet1 = document.querySelector("#img_ss1");
       //console.log(document.querySelector("#img_ss1").width);
-      function initSprites(){
-        bojjiSpriteSheet = new SpriteSheet(document.querySelector("#img_bojjiSpriteSheet"), 26, 32);
-        pbPartner = new Sprite(bojjiSpriteSheet, 100, 100, 2, 1.25, "N/A", "pbPartner");
-        //tbPartner = new Sprite(bojjiSpriteSheet, 150, 100, 1, 1, "N/A", "tbPartner");
-        mbPartner = new Sprite(bojjiSpriteSheet, 150, 100, 3, 1.25, "N/A", "mbPartner");
-        menuPartner = new Sprite(bojjiSpriteSheet, 150, -100, 1, 2, "N/A", "menuPartner");
-        spritesLoaded = true;
-      }
-
       function clearOverlay() {
         olc.clearRect(0, 0, ol.width, ol.height);
       }
@@ -730,6 +720,7 @@
       }
 
       document.querySelector("#sel_videoOption").onchange = () => {
+        if (!document.querySelector("#sel_videoOption").value) return;
         changeVideo(
           titleToFile(document.querySelector("#sel_videoOption").value),
           "video/mp4"
@@ -768,9 +759,14 @@
             videoProgressPut.readyState === 4 &&
             videoProgressPut.status === 200
           ) {
-            document.querySelector("#videoPlayer").currentTime =
-              videoProgressPut.response;
-            document.querySelector("#videoPlayer").src = videoTitle;
+            const player = document.querySelector("#videoPlayer");
+            const saved = Number(videoProgressPut.response);
+            player.addEventListener("loadedmetadata", () => {
+              if (Number.isFinite(saved) && saved >= 0) {
+                player.currentTime = Math.min(saved, player.duration);
+              }
+            }, { once: true });
+            player.src = videoTitle;
             // console.log(videoTitle);
           }
         };

@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS videoprogress (
+  VideoTitle VARCHAR(200) NOT NULL PRIMARY KEY,
+  VideoProgress DOUBLE NOT NULL DEFAULT 0
+);
